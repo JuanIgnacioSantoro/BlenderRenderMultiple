@@ -1,13 +1,13 @@
 import subprocess
 import threading
 import tkinter as tk
-from tkinter import filedialog, messagebox, scrolledtext
+from tkinter import filedialog, messagebox, scrolledtext, ttk
 
 class BlenderBatchGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Blender Batch Renderer")
-        self.root.geometry("700x500")
+        self.root.geometry("700x550")
 
         self.blender_path = tk.StringVar()
         self.output_path = tk.StringVar(value="C:/RenderOutput/")
@@ -39,8 +39,23 @@ class BlenderBatchGUI:
         self.listbox = tk.Listbox(self.root, height=6)
         self.listbox.pack(fill="both", padx=10, pady=5, expand=True)
 
+        # Progress bar
+        tk.Label(self.root, text="Progreso").pack(anchor="w", padx=10, pady=(10, 0))
+        self.progress = ttk.Progressbar(self.root, length=400, mode="determinate")
+        self.progress.pack(padx=10, fill="x")
+
+        self.progress_label = tk.Label(self.root, text="0 %")
+        self.progress_label.pack(anchor="e", padx=10)
+
         # Start button
-        tk.Button(self.root, text="Iniciar Render", command=self.start_render, bg="#4CAF50", fg="white").pack(pady=10)
+        tk.Button(
+            self.root,
+            text="Iniciar Render",
+            command=self.start_render,
+            bg="#4CAF50",
+            fg="white",
+            height=2
+        ).pack(pady=10)
 
         # Log output
         tk.Label(self.root, text="Log").pack(anchor="w", padx=10)
@@ -78,6 +93,10 @@ class BlenderBatchGUI:
             messagebox.showerror("Error", "Agregá al menos un archivo .blend")
             return
 
+        self.progress["value"] = 0
+        self.progress["maximum"] = len(self.blend_files)
+        self.progress_label.config(text="0 %")
+
         threading.Thread(target=self.render_batch, daemon=True).start()
 
     def render_batch(self):
@@ -89,15 +108,31 @@ class BlenderBatchGUI:
             "-a"
         ]
 
-        for blend in self.blend_files:
+        total = len(self.blend_files)
+
+        for index, blend in enumerate(self.blend_files, start=1):
             self.log_write(f"▶ Renderizando: {blend}")
+
             try:
-                subprocess.run([self.blender_path.get(), blend] + render_options, check=True)
+                subprocess.run(
+                    [self.blender_path.get(), blend] + render_options,
+                    check=True
+                )
                 self.log_write(f"✔ Finalizado: {blend}")
             except subprocess.CalledProcessError:
                 self.log_write(f"✖ Error renderizando: {blend}")
 
+            # Actualizar progreso real
+            progress_value = index
+            percent = int((progress_value / total) * 100)
+
+            self.root.after(0, self.update_progress, progress_value, percent)
+
         self.log_write("🎉 Render batch completado")
+
+    def update_progress(self, value, percent):
+        self.progress["value"] = value
+        self.progress_label.config(text=f"{percent} %")
 
 if __name__ == "__main__":
     root = tk.Tk()
