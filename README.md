@@ -11,3 +11,10 @@ pip install pyinstaller
 pyinstaller --onefile --windowed blender_batch_gui_pro.py
 
 ***Proximos cambios:***
+
+* Mostrar log completo.
+* Agregar botón de cancelar.
+* Botones del mismo color.
+* Cambiar disposición de botones.
+* Botón para editar y eliminar ruta de archivos.
+* Revisar barra de tiempo.
