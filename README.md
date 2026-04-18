@@ -18,3 +18,4 @@ pyinstaller --onefile --windowed blender_batch_gui_pro.py
 * Cambiar disposición de botones.
 * Botón para editar y eliminar ruta de archivos.
 * Revisar barra de tiempo.
+* Mostrar barra de proceso en base a los fotogramas de ese momento a renderizar.
